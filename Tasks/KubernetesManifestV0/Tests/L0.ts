@@ -31,7 +31,6 @@ describe('Kubernetes Manifests Suite', function() {
         process.env[shared.TestEnvVars.strategy] = shared.Strategy.none;   
         tr.run();
         assert(tr.succeeded, 'task should have succeeded');
-        console.log(tr.stdout);
         done();
     });
     it('Run successfully for deploy canary', (done:MochaDone) => {
