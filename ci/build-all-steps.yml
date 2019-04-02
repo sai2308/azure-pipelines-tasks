@@ -53,7 +53,7 @@ steps:
 
   # Webpack
   - script: node make.js build --task "$(task_pattern)"
-    displayName: Build
+    displayName: Webpack
     condition: ne(variables['numTasks'], 0)
 
   # Stage packages
