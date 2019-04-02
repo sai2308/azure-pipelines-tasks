@@ -10,7 +10,8 @@
     "build": "node make.js build",
     "test": "node make.js test",
     "testLegacy": "node make.js testLegacy",
-    "package": "node make.js package"
+    "package": "node make.js package",
+    "webpack": "node make.js webpack"
   },
   "repository": {
     "type": "git",
@@ -41,6 +42,7 @@
     "sync-request": "3.0.1",
     "typed-rest-client": "1.0.9",
     "typescript": "2.3.4",
-    "validator": "3.33.0"
+    "validator": "3.33.0",
+    "webpack": "^4.29.6"
   }
 }

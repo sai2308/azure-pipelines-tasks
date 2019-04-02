@@ -40,8 +40,21 @@ steps:
   displayName: Build
   condition: ne(variables['numTasks'], 0)
 
+# Test
+- script: node make.js test
+  displayName: Test with node 6
+  condition: ne(variables['numTasks'], 0)
+- script: node make.js testLegacy --task "$(task_pattern)"
+  displayName: Legacy tests with node 6
+  condition: ne(variables['numTasks'], 0)
+
 # Only on Windows:
 - ${{ if eq(parameters.os, 'Windows_NT') }}:
+
+  # Webpack
+  - script: node make.js build --task "$(task_pattern)"
+    displayName: Build
+    condition: ne(variables['numTasks'], 0)
 
   # Stage packages
   - script: node ./ci/stage-package.js
@@ -56,14 +69,6 @@ steps:
       pathToPublish: _package/tasks.zip
       artifactName: package
       publishLocation: container
-
-# Test
-- script: node make.js test
-  displayName: Test with node 6
-  condition: ne(variables['numTasks'], 0)
-- script: node make.js testLegacy --task "$(task_pattern)"
-  displayName: Legacy tests with node 6
-  condition: ne(variables['numTasks'], 0)
 
 # Only when building on Windows:
 - ${{ if eq(parameters.os, 'Windows_NT') }}:

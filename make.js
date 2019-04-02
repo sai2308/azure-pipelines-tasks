@@ -23,6 +23,7 @@ var os = require('os');
 var path = require('path');
 var semver = require('semver');
 var util = require('./make-util');
+var webpack = require('webpack');
 
 // util functions
 var cd = util.cd;
@@ -343,6 +344,43 @@ target.test = function() {
     util.installNode(options.node);
 
     run('mocha ' + testsSpec.join(' ') /*+ ' --reporter mocha-junit-reporter --reporter-options mochaFile=../testresults/test-results.xml'*/, /*inheritStreams:*/true);
+}
+
+target.webpack = function() {
+    taskList.forEach(function(taskName) {
+        banner('Running Webpack on: ' + taskName);
+        // Webpack all entry points
+        const taskPath = path.join(buildPath, taskName);
+        const entryFiles = util.getNodeTaskEntryPoints(taskPath);
+        console.log('Packing', entryFiles);
+        let entryPointsRemaining = entryFiles.length;
+        entryFiles.forEach(entryFile => {
+            let entryPoint = path.join(taskPath, entryFile);
+            const config = {
+                entry: entryPoint,
+                output: {
+                  path: taskPath,
+                  filename: entryFile
+                },
+                target: 'node',
+                mode: 'production'
+              };
+            webpack(config, (err, stats) => {
+                if (err) {
+                    throw err;
+                }
+                if (stats.hasErrors()) {
+                    throw stats.toJson().errors;
+                }
+
+                entryPointsRemaining -= 1;
+                if (entryPointsRemaining == 0) {
+                    // Once we've webpacked all entry points, delete other js files since they're extraneous at this point (including node_modules)
+                    util.deleteMatchingFiles(taskPath, new RegExp(/\.js$/g), entryFiles);
+                }
+            });
+        });
+    });
 }
 
 //

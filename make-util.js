@@ -1173,6 +1173,51 @@ var getRefs = function () {
 }
 exports.getRefs = getRefs;
 
+// Given an execution object, parses it for any targets targeting Node or Node10
+var getNodeExecutionTarget = function (executionObject) {
+    if ('Node10' in executionObject) {
+        return executionObject['Node10']['target'];
+    }
+    else if ('Node' in executionObject) {
+        return executionObject['Node']['target'];
+    }
+    return null;
+}
+
+// Get the names of the files used as entry points for node tasks
+var getNodeTaskEntryPoints = function (taskPath) {
+    var taskJson = JSON.parse(fs.readFileSync(path.join(taskPath, 'task.json')).toString());
+    let entryPoints = [];
+    const executionModes = ['prejobexecution', 'execution', 'postjobexecution'];
+    executionModes.forEach(mode => {
+        if (mode in taskJson) {
+            const target = getNodeExecutionTarget(taskJson[mode]);
+            if (target) {
+                entryPoints.push(target);
+            }
+        }
+    });
+    return entryPoints;
+}
+exports.getNodeTaskEntryPoints = getNodeTaskEntryPoints;
+
+// Delete all files in the directory that match the pattern except those on the exclusionList (non-recursive)
+var deleteMatchingFiles = function(directory, pattern, exclusionList) {
+    let toBeDeleted = [];
+    console.log(directory);
+    const files = fs.readdirSync(directory);
+    files.forEach(file => {
+        if (pattern.test(file) && exclusionList.indexOf(file) < 0) {
+            toBeDeleted.push(file);
+        }
+    });
+    console.log ('Deleting', toBeDeleted);
+    toBeDeleted.forEach(file => {
+        fs.unlinkSync(path.join(directory,file));
+    });
+}
+exports.deleteMatchingFiles = deleteMatchingFiles;
+
 var compressTasks = function (sourceRoot, destPath, individually) {
     assert(sourceRoot, 'sourceRoot');
     assert(destPath, 'destPath');
