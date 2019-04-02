@@ -377,6 +377,8 @@ target.webpack = function() {
                 if (entryPointsRemaining == 0) {
                     // Once we've webpacked all entry points, delete other js files since they're extraneous at this point (including node_modules)
                     util.deleteMatchingFiles(taskPath, new RegExp(/\.js$/g), entryFiles);
+                    console.log('Deleting node modules');
+                    util.rm('-rf', path.join(taskPath, 'node_modules'));
                 }
             });
         });
