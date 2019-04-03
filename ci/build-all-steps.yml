@@ -52,7 +52,7 @@ steps:
 - ${{ if eq(parameters.os, 'Windows_NT') }}:
 
   # Webpack
-  - script: node make.js build --task "$(task_pattern)"
+  - script: node make.js webpack --task "$(task_pattern)"
     displayName: Webpack
     condition: ne(variables['numTasks'], 0)
 
