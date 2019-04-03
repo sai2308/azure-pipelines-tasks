@@ -9,6 +9,7 @@ var process = require('process');
 var semver = require('semver');
 var shell = require('shelljs');
 var syncRequest = require('sync-request');
+var webpack = require('webpack');
 
 // global paths
 var downloadPath = path.join(__dirname, '_download');
@@ -1199,7 +1200,54 @@ var getNodeTaskEntryPoints = function (taskPath) {
     });
     return entryPoints;
 }
-exports.getNodeTaskEntryPoints = getNodeTaskEntryPoints;
+
+var webpackTasks = function(buildPath, taskList, taskIndex = 0) {
+    if (taskIndex >= taskList.length) {
+        return;
+    }
+    var taskName = taskList[taskIndex];
+    banner('Running Webpack on: ' + taskName);
+    // Webpack all entry points
+    const taskPath = path.join(buildPath, taskName);
+    const entryFiles = getNodeTaskEntryPoints(taskPath);
+    console.log('Packing', entryFiles);
+    let entryPointsRemaining = entryFiles.length;
+    if (entryFiles.length > 0) {
+        entryFiles.forEach(entryFile => {
+            let entryPoint = path.join(taskPath, entryFile);
+            const config = {
+                entry: entryPoint,
+                output: {
+                    path: taskPath,
+                    filename: entryFile
+                },
+                target: 'node',
+                mode: 'production'
+                };
+            webpack(config, (err, stats) => {
+                if (err) {
+                    throw err;
+                }
+                if (stats.hasErrors()) {
+                    throw stats.toJson().errors;
+                }
+
+                entryPointsRemaining -= 1;
+                if (entryPointsRemaining == 0) {
+                    // Once we've webpacked all entry points, delete other js files since they're extraneous at this point (including node_modules)
+                    deleteMatchingFiles(taskPath, new RegExp(/\.js$/g), entryFiles);
+                    console.log('Deleting node modules');
+                    rm('-rf', path.join(taskPath, 'node_modules'));
+                    webpackTasks(buildPath, taskList, taskIndex + 1);
+                }
+            });
+        });
+    }
+    else {
+        webpackTasks(buildPath, taskList, taskIndex + 1);
+    }
+}
+exports.webpackTasks = webpackTasks;
 
 // Delete all files in the directory that match the pattern except those on the exclusionList (non-recursive)
 var deleteMatchingFiles = function(directory, pattern, exclusionList) {
