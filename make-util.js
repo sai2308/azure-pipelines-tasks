@@ -1222,7 +1222,8 @@ var webpackTasks = function(buildPath, taskList, taskIndex = 0) {
                     filename: entryFile
                 },
                 target: 'node',
-                mode: 'production'
+                mode: 'production',
+                node: false
                 };
             webpack(config, (err, stats) => {
                 if (err) {
