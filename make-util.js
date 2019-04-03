@@ -10,6 +10,7 @@ var semver = require('semver');
 var shell = require('shelljs');
 var syncRequest = require('sync-request');
 var webpack = require('webpack');
+var nodeExternals = require('webpack-node-externals');
 
 // global paths
 var downloadPath = path.join(__dirname, '_download');
@@ -1222,8 +1223,11 @@ var webpackTasks = function(buildPath, taskList, taskIndex = 0) {
                     filename: entryFile
                 },
                 target: 'node',
-                mode: 'production',
-                node: false
+                mode: 'development',
+                node: false,
+                // exprContextRegExp: /$^/,
+                // exprContextCritical: false
+                externals: [nodeExternals({modulesDir: path.join(taskPath, 'node_modules')})]
                 };
             webpack(config, (err, stats) => {
                 if (err) {
@@ -1235,10 +1239,10 @@ var webpackTasks = function(buildPath, taskList, taskIndex = 0) {
 
                 entryPointsRemaining -= 1;
                 if (entryPointsRemaining == 0) {
-                    // Once we've webpacked all entry points, delete other js files since they're extraneous at this point (including node_modules)
+                    // Once we've webpacked all entry points, delete other js files since they're extraneous at this point (except node_modules)
                     deleteMatchingFiles(taskPath, new RegExp(/\.js$/g), entryFiles);
-                    console.log('Deleting node modules');
-                    rm('-rf', path.join(taskPath, 'node_modules'));
+                    // console.log('Deleting node modules');
+                    // rm('-rf', path.join(taskPath, 'node_modules'));
                     webpackTasks(buildPath, taskList, taskIndex + 1);
                 }
             });

@@ -43,6 +43,7 @@
     "typed-rest-client": "1.0.9",
     "typescript": "2.3.4",
     "validator": "3.33.0",
-    "webpack": "^4.29.6"
+    "webpack": "^4.29.6",
+    "webpack-node-externals": "^1.7.2"
   }
 }
